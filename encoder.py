@@ -5,17 +5,26 @@ import RPi.GPIO as GPIO
 
 class Encoder:
 
-    def __init__(self, leftPin, rightPin, callback=None):
+    def __init__(self, leftPin, rightPin, buttonPin, callback=None):
         self.leftPin = leftPin
         self.rightPin = rightPin
+        self.buttonPin = buttonPin
         self.value = 0
         self.state = '00'
         self.direction = None
         self.callback = callback
-        GPIO.setup(self.leftPin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(self.rightPin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.leftPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.rightPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.buttonPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(self.leftPin, GPIO.BOTH, callback=self.transitionOccurred)  
-        GPIO.add_event_detect(self.rightPin, GPIO.BOTH, callback=self.transitionOccurred)  
+        GPIO.add_event_detect(self.rightPin, GPIO.BOTH, callback=self.transitionOccurred)
+        GPIO.add_event_detect(self.buttonPin, GPIO.FALLING, callback=self.buttonPushed)
+
+    def buttonPushed(self, channel):
+        button = GPIO.input(self.buttonPin)
+        self.value = 0
+        self.direction = None
+        self.callback(self.value, self.direction)
 
     def transitionOccurred(self, channel):
         p1 = GPIO.input(self.leftPin)
